@@ -1,37 +1,42 @@
-import { Form } from "react-final-form";
-import React from "react";
-import FormInput from "./FormInput";
+import { Field, Form } from "react-final-form";
+import React, { useEffect, useState } from "react";
+//import FormInput from "./FormInput";
 import { Row, Col, Button } from "react-bootstrap";
+import "./index.css";
 
 function App() {
-  const allData = [];
+  const getLocalItems = () => {
+    let list = localStorage.getItem("lists");
+    if (list) {
+      return JSON.parse(localStorage.getItem("lists"));
+    } else {
+      return [];
+    }
+  };
+
+  const [inputData, setInputData] = useState({
+    username: "",
+    message: "",
+  });
+  const [items, setItems] = useState(getLocalItems());
+  const [isEditItem, setIsEditItem] = useState(null);
   const onSubmit = (e) => {
-    let jsonData = JSON.stringify(e);
-    let currData = JSON.parse(jsonData);
-    //document.getElementById("username").innerHTML = currData.Username;
-    //document.getElementById("msg").innerHTML = currData.Message;
-    allData.push(currData);
-    console.log(allData);
-    clearFields();
+    console.log(items);
   };
-  const clearFields=()=>{
-    
-    document.getElementById("msgForm").reset();
-  }
-  const validate = (e) => {
-    //  var letters = /^[A-Za-z]+$/;
-    const errors = {};
-    if (e.Message && e.Message.length < 4) {
-      errors.Message = "Too short Message.";
-    }
-    if (!e.Username) {
-      errors.Username = "Proper Username Required";
-    }
-    return errors;
-  };
-  const initialVals = {
-    Message: "Great Experience",
-  };
+  // const validate = (e) => {
+  //   //  var letters = /^[A-Za-z]+$/;
+  //   const errors = {};
+  //   if (e.Message && e.Message.length < 4) {
+  //     errors.Message = "Too short Message.";
+  //   }
+  //   if (!e.Username) {
+  //     errors.Username = "Proper Username Required";
+  //   }
+  //   return errors;
+  // };
+  // const initialVals = {
+  //   Message: "Great Experience",
+  // };
   const formData = [
     {
       id: "1",
@@ -44,12 +49,62 @@ function App() {
       InputType: "textarea",
     },
   ];
-  const DeleteMsg=(id)=>{
-    console.log(id);
+  useEffect(() => {
+    localStorage.setItem("lists", JSON.stringify(items));
+  }, [items]);
+
+  const addComment = () => {
+    console.log(inputData);
+    console.log(isEditItem)
+    if (isEditItem != null) {
+      setItems(
+        items.map((elem) => {
+          if (elem.id === isEditItem) {
+            return {
+              ...elem,
+              username: inputData.username,
+              message: inputData.message,
+            };
+          }
+          return elem;
+        })
+      );
+      setIsEditItem(null);
+    }
+    else 
+    {const allInputData = {
+      id: new Date().getTime().toString(),
+      username: inputData.username,
+      message: inputData.message,
+    };
+    setItems([...items, allInputData]);
   }
-  const EditMsg=(id)=>{
-    console.log(id);
-  }
+    setInputData({
+      username: "",
+      message: "",
+    });
+  };
+  const deleteItem = (index) => {
+    const updateditems = items.filter((elem) => {
+      return index !== elem.id;
+    });
+
+    setItems(updateditems);
+  };
+
+  const editItem = (id) => {
+    let newEditItem = items.find((elem) => {
+      return elem.id === id;
+    });
+    console.log(newEditItem);
+
+    setInputData({
+      ...inputData,
+      username: newEditItem.username,
+      message: newEditItem.message,
+    });
+    setIsEditItem(id);
+  };
 
   return (
     <>
@@ -57,64 +112,140 @@ function App() {
         <div className="row text-align-center">
           <Form
             onSubmit={onSubmit}
-            validate={validate}
-            initialValues={initialVals}
+            // validate={validate}
+            // initialValues={initialVals}
             render={({ handleSubmit, reset, pristine, submitting, values }) => (
               <>
                 <div className="text-center">
+
+{/* Final Form */}
                   <form id="msgForm" onSubmit={handleSubmit}>
                     {formData.map((data) => {
-                      return <FormInput id={data.id} data={data} />;
+                      return (
+                        <>
+                          {data.InputType === "textarea" ? (
+                            <Field name={data.name}>
+                              {({ input, meta }) => (
+                                <div className="mt-4">
+                                  <label className="fs-2 me-5">
+                                    {data.name}
+                                  </label>
+                                  <textarea
+                                    required
+                                    name={data.name}
+                                    className="fin"
+                                    {...input}
+                                    value={inputData.message}
+                                    onChange={(e) =>
+                                      setInputData({
+                                        ...inputData,
+                                        message: e.target.value,
+                                      })
+                                    }
+                                    type={data.InputType}
+                                    placeholder={data.name}
+                                  />
+                                  {meta.touched && meta.error && (
+                                    <div className="err">{meta.error}</div>
+                                  )}
+                                </div>
+                              )}
+                            </Field>
+                          ) : (
+                            <Field name={data.name}>
+                              {({ input, meta }) => (
+                                <div className="mt-3">
+                                  <label className="fs-2 me-5">
+                                    {data.name}
+                                  </label>
+                                  <input
+                                    required
+                                    name={data.name}
+                                    className="fin"
+                                    {...input}
+                                    value={inputData.username}
+                                    onChange={(e) =>
+                                      setInputData({
+                                        ...inputData,
+                                        username: e.target.value,
+                                      })
+                                    }
+                                    type={data.InputType}
+                                    placeholder={data.name}
+                                  />
+                                  {meta.error && meta.touched && (
+                                    <div className="err">{meta.error}</div>
+                                  )}
+                                </div>
+                              )}
+                            </Field>
+                          )}
+                        </>
+                      );
                     })}
-                    <button
+                    <Button
                       type="submit"
-                      onClick={reset}
-                      className="btn mt-4 btn-success"
-                      disabled={submitting || pristine}
+                      variant="outline-success"
+                      onClick={addComment}
+                      className="btn mt-4 btn-outline-success"
+                      disabled={submitting}
                     >
                       Submit
-                    </button>
+                    </Button>
                   </form>
                 </div>
               </>
             )}
           />
         </div>
-        <Row className="mt-5">
-          <Col>
-            <h3>Customer Name</h3>
-          </Col>
-          <Col>
-            <h3>Message</h3>
-          </Col>
-          <Col>
-          <h3>Options</h3>
-          </Col>
-        </Row>
-        {allData.map((id, data) => {
-          return (
-            <>
-              <Row className="mt-5">
-                <Col>
-                {data.Message}
-                  {/* <div id="username"></div> */}
-                </Col>
-                <Col>
-                {data.Username}
-                  {/* <div id="msg"></div> */}
-                </Col>
-                <Col>
-                  {
-                    <>
-                    <Button className="btn btn-warning me-5" onClick={EditMsg(id)}>Edit</Button>
-                    <Button className="btn btn-danger" onClick={DeleteMsg(id)}>Delete</Button>
-                    </>
-                  }
-                </Col>
-              </Row>
-            </>
-          );
-        })}
+{/* Grid */}
+        <div className="showItems text-center">
+          <Row className="mt-4 r1">
+            <Col>
+              <h2>Customer</h2>
+            </Col>
+            <Col>
+              <h2>Comment</h2>
+            </Col>
+            <Col>
+              <h2>Options</h2>
+            </Col>
+          </Row>
+          {items.map((elem) => {
+            return (
+              <div className="eachItem" key={elem.id}>
+                <Row className="mt-4">
+                  <Col>
+                    <p className="fs-5">{elem.username}</p>
+                  </Col>
+                  <Col>
+                    <p className="fs-5">{elem.message}</p>
+                  </Col>
+                  <Col>
+                    <div className="todo-btn">
+                      <Button
+                        variant="outline-warning"
+                        className="btn rounded-pill"
+                        name="Edit Item"
+                        onClick={() => editItem(elem.id)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        className="btn rounded-pill mx-3"
+                        name="Delete Item"
+                        onClick={() => deleteItem(elem.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </>
   );

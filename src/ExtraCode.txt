@@ -1,0 +1,13 @@
+<form id="msgForm" onSubmit={handleSubmit}>
+                    {formData.map((data) => {
+                      return <FormInput id={data.id} data={data} />;
+                    })}
+                    <button
+                      type="submit"
+                      onClick={addComment}
+                      className="btn mt-4 btn-success"
+                      disabled={submitting || pristine}
+                    >
+                      Submit
+                    </button>
+                  </form>
