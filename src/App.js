@@ -21,22 +21,9 @@ function App() {
   const [items, setItems] = useState(getLocalItems());
   const [isEditItem, setIsEditItem] = useState(null);
   const onSubmit = (e) => {
-    console.log(items);
+    addComment();
   };
-  // const validate = (e) => {
-  //   //  var letters = /^[A-Za-z]+$/;
-  //   const errors = {};
-  //   if (e.Message && e.Message.length < 4) {
-  //     errors.Message = "Too short Message.";
-  //   }
-  //   if (!e.Username) {
-  //     errors.Username = "Proper Username Required";
-  //   }
-  //   return errors;
-  // };
-  // const initialVals = {
-  //   Message: "Great Experience",
-  // };
+
   const formData = [
     {
       id: "1",
@@ -55,7 +42,8 @@ function App() {
 
   const addComment = () => {
     console.log(inputData);
-    console.log(isEditItem)
+    console.log(isEditItem);
+    if(inputData.username !== "" && inputData.message !== "")
     if (isEditItem != null) {
       setItems(
         items.map((elem) => {
@@ -112,8 +100,6 @@ function App() {
         <div className="row text-align-center">
           <Form
             onSubmit={onSubmit}
-            // validate={validate}
-            // initialValues={initialVals}
             render={({ handleSubmit, reset, pristine, submitting, values }) => (
               <>
                 <div className="text-center">
@@ -186,7 +172,6 @@ function App() {
                     <Button
                       type="submit"
                       variant="outline-success"
-                      onClick={addComment}
                       className="btn mt-4 btn-outline-success"
                       disabled={submitting}
                     >
